@@ -1,5 +1,6 @@
 
 model_store/
+images/
 
 # Python
 __pycache__/

@@ -1,11 +1,11 @@
-
 services:
   api:
     build: ./api
     ports:
       - "5000:5000"
     volumes:
-      - ./api:/app
+      - ./api/app.py:/app/app.py
+      - ./api/.env:/app/.env
     environment:
       - FLASK_ENV=development
       - TORCHSERVE_URL=http://torchserve:8080
@@ -19,7 +19,20 @@ services:
       - "8081:8081"  # management API
     volumes:
       - ./model_store:/home/model-server/model-store
-    command: torchserve --start --model-store model-store --models all
+      - ./torchserve_config.properties:/home/model-server/config.properties
+    command: >
+      torchserve --start 
+      --model-store model-store 
+      --ts-config /home/model-server/config.properties
     environment:
       - TS_MAX_RESPONSE_SIZE=65536
-      - TS_MAX_REQUEST_SIZE=65536 
+      - TS_MAX_REQUEST_SIZE=65536
+      - TS_NO_TOKEN_REQUIRED=true
+      - ENABLE_TORCH_PROFILER=true
+
+  test:
+    build: ./webapp
+    volumes:
+      - ./webapp:/app
+    depends_on:
+      - api 
