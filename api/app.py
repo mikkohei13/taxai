@@ -11,54 +11,44 @@ import os
 import json
 
 class Predictor:
-    def __init__(self, model_path, model_version, size_pixels, device=None):
+    def __init__(self, MODEL_PATH, MODEL_VERSION, SIZE_PIXELS, device=None):
         # Set device
         self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         # Initialize model
-        if model_version == "b4":
+        if MODEL_VERSION == "b4":
             from torchvision.models import efficientnet_b4
             self.model = efficientnet_b4()
         else:
             raise ValueError("Unsupported model version")
 
-        # Define label mapping
-        '''
-        It should be like this:
-        self.label_map = {
-            0: "adult",
-            1: "larva",
-            2: "pupa",
-            3: "egg",
-            4: "indirect",
-            5: "habitat"
-        }
-        '''
-
         # Load from json file
-        raw_label_map = json.load(open('./model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19_label_map.json'))
+        LABEL_MAP_PATH = "./model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19_label_map.json"
+        raw_label_map = json.load(open(LABEL_MAP_PATH))
+
         # Convert from label-number to number-label
         converted_label_map = {int(v): k for k, v in raw_label_map.items()}
-        print("LABEL MAP: ", converted_label_map)
         self.label_map = converted_label_map
 
         # Get number of classes from label map
-        num_classes = len(self.label_map)
+        NUM_CLASSES = len(self.label_map)
 
         num_features = self.model.classifier[1].in_features
-        self.model.classifier[1] = nn.Linear(num_features, num_classes)
+        self.model.classifier[1] = nn.Linear(num_features, NUM_CLASSES)
         
         # Load trained weights
-        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
+        self.model.load_state_dict(torch.load(MODEL_PATH, map_location=self.device, weights_only=True))
         self.model.to(self.device)
         self.model.eval()
         
         # Define transforms
         self.transform = transforms.Compose([
-            transforms.Resize((size_pixels, size_pixels)),
+            transforms.Resize((SIZE_PIXELS, SIZE_PIXELS)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
+
+        print(f"API initialized with model {MODEL_PATH} and {NUM_CLASSES} classes")
 
 
     def predict(self, image):
@@ -81,6 +71,50 @@ class Predictor:
             'probabilities': {self.label_map[i]: prob.item() 
                             for i, prob in enumerate(probabilities[0])}
         }
+
+
+
+def generate_response(raw_result):
+    predictions = raw_result['probabilities']
+    
+    # Create a list of (species, confidence) tuples
+    prediction_list = []
+    for species, confidence in predictions.items():
+        prediction_list.append({
+            'species': species,
+            'confidence': confidence
+        })
+    
+    # Sort the list by confidence in descending order
+    prediction_list.sort(key=lambda x: x['confidence'], reverse=True)
+    
+    # Take top 10 predictions
+    top_species_predictions = prediction_list[:10]
+
+    top_genus_predictions = []
+
+    # Get top genus predictions
+    for prediction in prediction_list:
+        # Split species by space
+        species_parts = prediction['species'].split(' ')
+        if len(species_parts) > 1:
+            genus = species_parts[0]
+            # If top_genus_predictions already contains the genus, add confidence to it. If not, add new genus. Continue until there are 10 genus.
+            if any(pred['genus'] == genus for pred in top_genus_predictions):
+                for pred in top_genus_predictions:
+                    if pred['genus'] == genus:
+                        pred['confidence'] += prediction['confidence']
+            else:
+                top_genus_predictions.append({'genus': genus, 'confidence': prediction['confidence']})
+            if len(top_genus_predictions) >= 10:
+                break
+
+    return {
+        'best_species': top_species_predictions[0],
+        'top_species': top_species_predictions,
+        'top_genus': top_genus_predictions
+    }
+
 
 app = Flask(__name__)
 
@@ -107,9 +141,11 @@ def predict():
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
         # Get prediction
-        result = predictor.predict(image)
-        
-        return jsonify({"prediction": result})
+        raw_result = predictor.predict(image)
+
+        # Finalize API response
+        api_response = generate_response(raw_result)
+        return jsonify({"prediction": api_response})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
