@@ -9,19 +9,22 @@ RUN apt-get update && apt-get install -y \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install numpy with all dependencies
+# First install base dependencies that others need
 RUN pip install --no-cache-dir \
-    numpy==1.26.4 \
     setuptools \
-    wheel
+    wheel \
+    numpy==1.26.4
 
-# Install PyTorch-related packages
+# Remove numpy from requirements.txt if present
+COPY requirements.txt .
+RUN sed -i '/numpy/d' requirements.txt
+
+# Install other base requirements first
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Now install PyTorch-related packages
 COPY requirements-torch.txt .
 RUN pip install --no-cache-dir -r requirements-torch.txt
-
-# Install other requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY . .

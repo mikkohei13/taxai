@@ -25,10 +25,12 @@ services:
       --model-store model-store 
       --ts-config /home/model-server/config.properties
     environment:
-      - TS_MAX_RESPONSE_SIZE=65536
-      - TS_MAX_REQUEST_SIZE=65536
+      - TS_MAX_RESPONSE_SIZE=6553600
+      - TS_MAX_REQUEST_SIZE=6553600
       - TS_NO_TOKEN_REQUIRED=true
       - ENABLE_TORCH_PROFILER=true
+      - ENABLE_AUTH_TOKEN=false
+      - TOKEN_REQUIRED=false
 
   test:
     build: ./webapp

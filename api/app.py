@@ -27,7 +27,15 @@ def preprocess_image(image_data):
         # Decode base64 image
         image_bytes = base64.b64decode(image_data)
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-        logger.debug(f"Image loaded successfully, size: {image.size}")
+        logger.debug(f"Original image size: {image.size}")
+        
+        # Calculate size to maintain aspect ratio
+        max_size = 800
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = tuple(int(dim * ratio) for dim in image.size)
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
+            logger.debug(f"Resized image to: {image.size}")
         
         # Standard EfficientNet-b4 preprocessing
         transform = transforms.Compose([
@@ -42,14 +50,31 @@ def preprocess_image(image_data):
         image_tensor = transform(image)
         logger.debug(f"Image tensor shape: {image_tensor.shape}, type: {type(image_tensor)}")
         
-        # Convert to numpy with detailed logging
-        logger.debug("Converting tensor to numpy array...")
+        # Convert to numpy, reduce precision, and ensure contiguous
         numpy_array = image_tensor.cpu().detach().numpy()
-        logger.debug(f"Numpy array shape: {numpy_array.shape}, type: {type(numpy_array)}")
+        numpy_array = np.ascontiguousarray(numpy_array)
         
-        # Convert to list
-        result = numpy_array.tolist()
-        logger.debug(f"Final list type: {type(result)}, length: {len(result)}")
+        # Convert to float16 for smaller size
+        numpy_array = numpy_array.astype(np.float16)
+        
+        # Round to 3 decimal places to further reduce size
+        numpy_array = np.around(numpy_array, decimals=3)
+        
+        # Flatten array and convert to list
+        flattened = numpy_array.ravel().tolist()
+        
+        # Create compact request format with shape info
+        result = {
+            "shape": list(numpy_array.shape),
+            "data": flattened
+        }
+        
+        # Log sizes for debugging
+        import sys
+        import json
+        json_data = json.dumps(result)
+        logger.debug(f"Request payload size: {sys.getsizeof(json_data)} bytes")
+        
         return result
     except Exception as e:
         logger.error(f"Error in image preprocessing: {str(e)}", exc_info=True)
@@ -80,21 +105,57 @@ def predict():
 
         logger.debug("Image data received, starting preprocessing")
         processed_data = preprocess_image(data['image'])
-        logger.debug(f"Processed data type: {type(processed_data)}")
-
-        # Forward the request to TorchServe
-        request_data = {"data": processed_data}
-        logger.debug(f"Sending request to TorchServe at {TORCHSERVE_URL} with data shape: {len(processed_data)}x{len(processed_data[0]) if processed_data else 0}")
-        torchserve_response = requests.post(
-            f"{TORCHSERVE_URL}/predictions/model",
-            json=request_data
-        )
         
-        logger.debug(f"TorchServe response status: {torchserve_response.status_code}")
-        logger.debug(f"TorchServe response content: {torchserve_response.text}")
-        prediction = torchserve_response.json()
-        logger.info("Prediction completed successfully")
-        return jsonify({"prediction": prediction})
+        # Log request size
+        import sys
+        import json
+        json_str = json.dumps(processed_data)
+        logger.info(f"Request payload size: {sys.getsizeof(json_str)} bytes")
+        logger.info(f"Data shape: {processed_data['shape']}")
+        
+        try:
+            # Make request to TorchServe
+            torchserve_response = requests.post(
+                f"{TORCHSERVE_URL}/predictions/model",
+                json=processed_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                timeout=30  # Add timeout
+            )
+            
+            logger.info(f"TorchServe response status: {torchserve_response.status_code}")
+            logger.debug(f"TorchServe response headers: {dict(torchserve_response.headers)}")
+            
+            # Log the raw response for debugging
+            raw_response = torchserve_response.text
+            logger.debug(f"TorchServe raw response: {raw_response[:1000]}")
+            
+            if torchserve_response.status_code != 200:
+                error_msg = f"TorchServe error: Status {torchserve_response.status_code}, Response: {raw_response}"
+                logger.error(error_msg)
+                return jsonify({"error": error_msg}), 500
+            
+            # Try to parse JSON response
+            try:
+                prediction = torchserve_response.json()
+                logger.info("Successfully parsed TorchServe response as JSON")
+                return jsonify({"prediction": prediction})
+            except ValueError as e:
+                # If JSON parsing fails, try to handle raw text response
+                if raw_response and raw_response.strip():
+                    logger.warning(f"Failed to parse JSON, returning raw response: {raw_response}")
+                    return jsonify({"prediction": raw_response})
+                else:
+                    error_msg = "Empty or invalid response from TorchServe"
+                    logger.error(error_msg)
+                    return jsonify({"error": error_msg}), 500
+            
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Error communicating with TorchServe: {str(e)}"
+            logger.error(error_msg)
+            return jsonify({"error": error_msg}), 500
 
     except Exception as e:
         logger.error(f"Error in prediction endpoint: {str(e)}", exc_info=True)
