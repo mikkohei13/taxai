@@ -22,7 +22,6 @@ def test_prediction(image_path):
         
         # First check if API is available
         health_url = f'http://{API_HOST}:5000/health'
-        torchserve_health_url = f'http://{API_HOST}:5000/torchserve-health'
         
         try:
             # Check API health
@@ -30,12 +29,6 @@ def test_prediction(image_path):
             health_response = requests.get(health_url)
             print(f"API health check status: {health_response.status_code}")
             print(f"API health check response: {health_response.json()}")
-            
-            # Check TorchServe health
-            print(f"Attempting to connect to {torchserve_health_url}")
-            torchserve_response = requests.get(torchserve_health_url)
-            print(f"TorchServe health check status: {torchserve_response.status_code}")
-            print(f"TorchServe health check response: {torchserve_response.json()}")
             
             # If we get here, we found a working host
             break

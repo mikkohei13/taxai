@@ -1,201 +1,118 @@
 from flask import Flask, request, jsonify
-import requests
-import os
-from dotenv import load_dotenv
 import torch
-import torchvision.transforms as transforms
+import torch.nn as nn
+from torchvision import transforms
+import numpy as np
 from PIL import Image
 import io
 import base64
-import logging
-import numpy as np
+import os
+#from dotenv import load_dotenv
+import json
 
-load_dotenv()
+class Predictor:
+    def __init__(self, model_path, model_version, size_pixels, device=None):
+        # Set device
+        self.device = device if device else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize model
+        if model_version == "b4":
+            from torchvision.models import efficientnet_b4
+            self.model = efficientnet_b4()
+        else:
+            raise ValueError("Unsupported model version")
+
+        # Define label mapping
+        '''
+        It should be like this:
+        self.label_map = {
+            0: "adult",
+            1: "larva",
+            2: "pupa",
+            3: "egg",
+            4: "indirect",
+            5: "habitat"
+        }
+        '''
+
+        # Load from json file
+        raw_label_map = json.load(open('./model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19_label_map.json'))
+        # Convert from label-number to number-label
+        converted_label_map = {int(v): k for k, v in raw_label_map.items()}
+        print("LABEL MAP: ", converted_label_map)
+        self.label_map = converted_label_map
+
+        # Get number of classes from label map
+        num_classes = len(self.label_map)
+
+        num_features = self.model.classifier[1].in_features
+        self.model.classifier[1] = nn.Linear(num_features, num_classes)
+        
+        # Load trained weights
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
+        self.model.to(self.device)
+        self.model.eval()
+        
+        # Define transforms
+        self.transform = transforms.Compose([
+            transforms.Resize((size_pixels, size_pixels)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+
+
+    def predict(self, image):
+        # Transform and predict
+        image = self.transform(image)
+        image = image.unsqueeze(0)  # Add batch dimension
+        
+        # Move to device and predict
+        image = image.to(self.device)
+        
+        with torch.no_grad():
+            outputs = self.model(image)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            predicted_class = torch.argmax(probabilities, dim=1).item()
+            confidence = probabilities[0][predicted_class].item()
+        
+        return {
+            'class': self.label_map[predicted_class],
+            'confidence': confidence,
+            'probabilities': {self.label_map[i]: prob.item() 
+                            for i, prob in enumerate(probabilities[0])}
+        }
 
 app = Flask(__name__)
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = app.logger
+# Initialize predictor
+MODEL_PATH = os.getenv('MODEL_PATH', './model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19.pth')
+MODEL_VERSION = os.getenv('MODEL_VERSION', 'b4')
+SIZE_PIXELS = int(os.getenv('SIZE_PIXELS', '380'))
 
-TORCHSERVE_URL = os.getenv('TORCHSERVE_URL', 'http://localhost:8080')
-logger.info(f"TorchServe URL configured as: {TORCHSERVE_URL}")
-
-def preprocess_image(image_data):
-    logger.debug("Starting image preprocessing")
-    try:
-        # Decode base64 image
-        image_bytes = base64.b64decode(image_data)
-        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-        logger.debug(f"Original image size: {image.size}")
-        
-        # Calculate size to maintain aspect ratio
-        max_size = 800
-        if max(image.size) > max_size:
-            ratio = max_size / max(image.size)
-            new_size = tuple(int(dim * ratio) for dim in image.size)
-            image = image.resize(new_size, Image.Resampling.LANCZOS)
-            logger.debug(f"Resized image to: {image.size}")
-        
-        # Standard EfficientNet-b4 preprocessing
-        transform = transforms.Compose([
-            transforms.Resize(380),  # EfficientNet-b4 default size
-            transforms.CenterCrop(380),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                               std=[0.229, 0.224, 0.225])
-        ])
-        
-        # Transform image
-        image_tensor = transform(image)
-        logger.debug(f"Image tensor shape: {image_tensor.shape}, type: {type(image_tensor)}")
-        
-        # Convert to numpy, reduce precision, and ensure contiguous
-        numpy_array = image_tensor.cpu().detach().numpy()
-        numpy_array = np.ascontiguousarray(numpy_array)
-        
-        # Convert to float16 for smaller size
-        numpy_array = numpy_array.astype(np.float16)
-        
-        # Round to 3 decimal places to further reduce size
-        numpy_array = np.around(numpy_array, decimals=3)
-        
-        # Flatten array and convert to list
-        flattened = numpy_array.ravel().tolist()
-        
-        # Create compact request format with shape info
-        result = {
-            "shape": list(numpy_array.shape),
-            "data": flattened
-        }
-        
-        # Log sizes for debugging
-        import sys
-        import json
-        json_data = json.dumps(result)
-        logger.debug(f"Request payload size: {sys.getsizeof(json_data)} bytes")
-        
-        return result
-    except Exception as e:
-        logger.error(f"Error in image preprocessing: {str(e)}", exc_info=True)
-        raise
-
-@app.before_request
-def log_request_info():
-    logger.debug("=== New Request ===")
-    logger.debug(f"Method: {request.method}")
-    logger.debug(f"Path: {request.path}")
-    logger.debug(f"Headers: {dict(request.headers)}")
-    if request.is_json:
-        logger.debug(f"JSON keys received: {request.json.keys() if request.json else 'No JSON data'}")
+predictor = Predictor(MODEL_PATH, MODEL_VERSION, SIZE_PIXELS)
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    logger.info("Health check endpoint called")
     return jsonify({"status": "healthy"})
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    logger.info("Predict endpoint called")
     try:
         data = request.get_json()
         if not data or 'image' not in data:
-            logger.error("No image data provided in request")
             return jsonify({"error": "No image data provided"}), 400
 
-        logger.debug("Image data received, starting preprocessing")
-        processed_data = preprocess_image(data['image'])
+        # Decode base64 image
+        image_bytes = base64.b64decode(data['image'])
+        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
-        # Log request size
-        import sys
-        import json
-        json_str = json.dumps(processed_data)
-        logger.info(f"Request payload size: {sys.getsizeof(json_str)} bytes")
-        logger.info(f"Data shape: {processed_data['shape']}")
+        # Get prediction
+        result = predictor.predict(image)
         
-        try:
-            # Make request to TorchServe
-            torchserve_response = requests.post(
-                f"{TORCHSERVE_URL}/predictions/model",
-                json=processed_data,
-                headers={
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                timeout=30  # Add timeout
-            )
-            
-            logger.info(f"TorchServe response status: {torchserve_response.status_code}")
-            logger.debug(f"TorchServe response headers: {dict(torchserve_response.headers)}")
-            
-            # Log the raw response for debugging
-            raw_response = torchserve_response.text
-            logger.debug(f"TorchServe raw response: {raw_response[:1000]}")
-            
-            if torchserve_response.status_code != 200:
-                error_msg = f"TorchServe error: Status {torchserve_response.status_code}, Response: {raw_response}"
-                logger.error(error_msg)
-                return jsonify({"error": error_msg}), 500
-            
-            # Try to parse JSON response
-            try:
-                prediction = torchserve_response.json()
-                logger.info("Successfully parsed TorchServe response as JSON")
-                return jsonify({"prediction": prediction})
-            except ValueError as e:
-                # If JSON parsing fails, try to handle raw text response
-                if raw_response and raw_response.strip():
-                    logger.warning(f"Failed to parse JSON, returning raw response: {raw_response}")
-                    return jsonify({"prediction": raw_response})
-                else:
-                    error_msg = "Empty or invalid response from TorchServe"
-                    logger.error(error_msg)
-                    return jsonify({"error": error_msg}), 500
-            
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Error communicating with TorchServe: {str(e)}"
-            logger.error(error_msg)
-            return jsonify({"error": error_msg}), 500
+        return jsonify({"prediction": result})
 
     except Exception as e:
-        logger.error(f"Error in prediction endpoint: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
-@app.route('/torchserve-health', methods=['GET'])
-def torchserve_health():
-    logger.info("TorchServe health check endpoint called")
-    try:
-        # Check basic health
-        ping_response = requests.get(f"{TORCHSERVE_URL}/ping")
-        logger.debug(f"TorchServe ping response: {ping_response.text}")
-        
-        # Check model status
-        models_response = requests.get(f"{TORCHSERVE_URL}/models")
-        logger.debug(f"TorchServe models response: {models_response.text}")
-        
-        if ping_response.status_code == 200:
-            response_data = {
-                "status": "TorchServe is healthy",
-                "ping_response": ping_response.text,
-                "models": models_response.json() if models_response.status_code == 200 else "Unable to get model status"
-            }
-            logger.info("TorchServe health check successful")
-            return jsonify(response_data)
-        else:
-            logger.error(f"TorchServe health check failed with status {ping_response.status_code}")
-            return jsonify({
-                "status": "TorchServe is not healthy",
-                "code": ping_response.status_code,
-                "ping_response": ping_response.text,
-                "models_response": models_response.text if models_response.status_code == 200 else "Unable to get model status"
-            }), 500
-    except requests.exceptions.ConnectionError as e:
-        logger.error(f"Failed to connect to TorchServe: {str(e)}")
-        return jsonify({
-            "status": "Cannot connect to TorchServe",
-            "url": TORCHSERVE_URL
-        }), 500
-
 if __name__ == '__main__':
-    logger.info("Starting Flask application...")
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    app.run(host='0.0.0.0', port=5000) 
