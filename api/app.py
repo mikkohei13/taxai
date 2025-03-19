@@ -109,10 +109,17 @@ def generate_response(raw_result):
             if len(top_genus_predictions) >= 10:
                 break
 
+    # Sort top genus predictions by confidence in descending order
+    top_genus_predictions.sort(key=lambda x: x['confidence'], reverse=True)
+
+    # Calculate difference between top species and top genus
+    genus_superiority = top_genus_predictions[0]['confidence'] - top_species_predictions[0]['confidence']
+
     return {
         'best_species': top_species_predictions[0],
         'top_species': top_species_predictions,
-        'top_genus': top_genus_predictions
+        'top_genus': top_genus_predictions,
+        'genus_superiority': genus_superiority
     }
 
 
