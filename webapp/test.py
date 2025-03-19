@@ -5,7 +5,7 @@ import os
 import time
 
 # Process specific image
-image_directory = "./images_forum2"
+image_directory = "./images_test1"
 
 API_HOST = "taxai-api-1"
 
