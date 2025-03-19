@@ -7,5 +7,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-# Keep container running
-CMD ["tail", "-f", "/dev/null"] 
+EXPOSE 3000
+
+CMD ["python", "app.py"] 

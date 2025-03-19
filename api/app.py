@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import torch
 import torch.nn as nn
 from torchvision import transforms
@@ -124,6 +125,7 @@ def generate_response(raw_result):
 
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Initialize predictor
 MODEL_PATH = os.getenv('MODEL_PATH', './model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19.pth')

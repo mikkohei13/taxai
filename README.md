@@ -1,9 +1,16 @@
 
 # Setup
 
+    mkdir ./api/model_store
+
+- Put model to model_store directory. 
+- Add model name and settings to /.api/app.py
+
     docker compose up --build; docker compose down;
 
-The API will be available at http://localhost:5000/health
+App will be available at http://localhost:3000/
+
+API will be available at http://localhost:5000/health
 
 # Notes
 

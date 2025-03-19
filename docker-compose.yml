@@ -11,6 +11,8 @@ services:
 
   app:
     build: ./webapp
+    ports:
+      - "3000:3000"
     volumes:
       - ./webapp:/app
     depends_on:
