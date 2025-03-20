@@ -20,6 +20,11 @@ class Predictor:
         if MODEL_VERSION == "b4":
             from torchvision.models import efficientnet_b4
             self.model = efficientnet_b4()
+            print("Using EfficientNet B4")
+        elif MODEL_VERSION == "b5":
+            from torchvision.models import efficientnet_b5
+            self.model = efficientnet_b5()
+            print("Using EfficientNet B5")
         else:
             raise ValueError("Unsupported model version")
 
@@ -128,9 +133,9 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Initialize predictor
-MODEL_PATH = os.getenv('MODEL_PATH', './model_store/20250315_0043_species_id_min_30_efficientnet_b4_epoch_19.pth')
-MODEL_VERSION = os.getenv('MODEL_VERSION', 'b4')
-SIZE_PIXELS = int(os.getenv('SIZE_PIXELS', '380'))
+MODEL_PATH = os.getenv('MODEL_PATH', './model_store/20250319_0038_species_id_min_30_efficientnet_b5_epoch_38.pth')
+MODEL_VERSION = os.getenv('MODEL_VERSION', 'b5')
+SIZE_PIXELS = int(os.getenv('SIZE_PIXELS', '456'))
 
 predictor = Predictor(MODEL_PATH, MODEL_VERSION, SIZE_PIXELS)
 
