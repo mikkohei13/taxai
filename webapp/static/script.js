@@ -66,6 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = function(e) {
             const base64Image = e.target.result.split(',')[1];
+            // Display the image
+            const uploadedImage = document.getElementById('uploadedImage');
+            uploadedImage.src = e.target.result;
             sendToAPI(base64Image);
         };
         reader.readAsDataURL(file);
@@ -105,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayResult(data) {
         const bestSpecies = data.prediction.best_species;
         speciesName.textContent = bestSpecies.species;
-        confidence.textContent = `${(bestSpecies.confidence * 100).toFixed(2)}%`;
+        confidence.textContent = (bestSpecies.confidence).toFixed(3);
         resultArea.style.display = 'block';
     }
 }); 
