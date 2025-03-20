@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultArea = document.getElementById('resultArea');
     const speciesName = document.getElementById('speciesName');
     const confidence = document.getElementById('confidence');
+    const spinner = document.getElementById('spinner');
 
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -77,6 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'Accept': 'application/json'
         };
 
+        // Show spinner and hide upload content
+        spinner.style.display = 'block';
+        document.querySelector('.upload-content').style.display = 'none';
+
         fetch(url, {
             method: 'POST',
             headers: headers,
@@ -89,6 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             console.error('Error:', error);
             alert('Error processing image. Please try again.');
+        })
+        .finally(() => {
+            // Hide spinner and show upload content
+            spinner.style.display = 'none';
+            document.querySelector('.upload-content').style.display = 'flex';
         });
     }
 
