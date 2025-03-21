@@ -12,6 +12,14 @@ App will be available at http://localhost:3000/
 
 API will be available at http://localhost:5000/health
 
+When calling the API you must provide image. Region and date are optional.
+
+    json_request = {
+        'image': img_data,
+        'region': 'South',
+        'date': '0320'
+    }
+
 # Notes
 
 Issue when building this:

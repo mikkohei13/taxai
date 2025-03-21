@@ -17,12 +17,17 @@ with open(image_path, "rb") as img_file:
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
-    response = requests.post(url, json={'image': img_data}, headers=headers)
+    json_request = {
+        'image': img_data,
+        'region': 'South',
+        'date': '0320'
+    }
+    response = requests.post(url, json=json_request, headers=headers)
     result = response.json()
 
     pretty_json = json.dumps(result, indent=2)
 
     print("--------------------------------")
     print(f"Image: {image_path}")
-    print(f"Prediction: {pretty_json}")
+    print(f"Response: {pretty_json}")
 

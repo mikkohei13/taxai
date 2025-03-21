@@ -78,9 +78,12 @@ class Predictor:
                             for i, prob in enumerate(probabilities[0])}
         }
 
+def get_background(top_species_prediction, region, date):
+    return {
+        'foo': 'bar'
+    }
 
-
-def generate_response(raw_result):
+def generate_response(raw_result, region=None, date=None):
     predictions = raw_result['probabilities']
     
     # Create a list of (species, confidence) tuples
@@ -130,13 +133,30 @@ def generate_response(raw_result):
     
     genus_superiority = round(genus_superiority, 3)
 
-    return {
+    prediction_response = {
         'best_species': top_species_predictions[0],
         'best_genus': top_genus_predictions[0],
         'top_species': top_species_predictions,
         'top_genus': top_genus_predictions,
         'genus_superiority': genus_superiority
     }
+
+    full_response = {
+        'prediction': prediction_response,
+        'parameters': {},
+        'background': {}
+    }
+
+    # Add region and date if provided
+    if region:
+        full_response['parameters']['region'] = region
+    if date:
+        full_response['parameters']['date'] = date
+
+    if region and date:
+        full_response['background'] = get_background(top_species_predictions[0], region, date)
+
+    return full_response
 
 
 app = Flask(__name__)
@@ -164,12 +184,16 @@ def predict():
         image_bytes = base64.b64decode(data['image'])
         image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
         
+        # Get optional parameters
+        region = data.get('region')
+        date = data.get('date')
+        
         # Get prediction
         raw_result = predictor.predict(image)
 
         # Finalize API response
-        api_response = generate_response(raw_result)
-        return jsonify({"prediction": api_response})
+        api_response = generate_response(raw_result, region, date)
+        return jsonify(api_response)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
