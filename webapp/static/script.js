@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayResult(data) {
         const bestSpecies = data.prediction.best_species;
-        speciesName.textContent = bestSpecies.species;
+        speciesName.textContent = bestSpecies.taxon;
         confidence.textContent = (bestSpecies.confidence).toFixed(3);
         resultArea.style.display = 'block';
     }

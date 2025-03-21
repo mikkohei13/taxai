@@ -23,11 +23,15 @@ h1 {
 .upload-area {
     border: 2px dashed #ccc;
     border-radius: 8px;
-    padding: 40px;
+    padding: 1em;
     text-align: center;
     background-color: #fafafa;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+.upload-area p, .upload-area img {
+    margin: 0;
 }
 
 .upload-area.dragover {
@@ -131,3 +135,10 @@ h1 {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 } 
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+

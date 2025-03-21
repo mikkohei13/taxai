@@ -87,7 +87,7 @@ def generate_response(raw_result):
     prediction_list = []
     for species, confidence in predictions.items():
         prediction_list.append({
-            'species': species,
+            'taxon': species.capitalize(),
             'confidence': confidence
         })
     
@@ -102,16 +102,16 @@ def generate_response(raw_result):
     # Get top genus predictions
     for prediction in prediction_list:
         # Split species by space
-        species_parts = prediction['species'].split(' ')
+        species_parts = prediction['taxon'].split(' ')
         if len(species_parts) > 1:
             genus = species_parts[0]
             # If top_genus_predictions already contains the genus, add confidence to it. If not, add new genus. Continue until there are 10 genus.
-            if any(pred['genus'] == genus for pred in top_genus_predictions):
+            if any(pred['taxon'] == genus for pred in top_genus_predictions):
                 for pred in top_genus_predictions:
-                    if pred['genus'] == genus:
+                    if pred['taxon'] == genus:
                         pred['confidence'] += prediction['confidence']
             else:
-                top_genus_predictions.append({'genus': genus, 'confidence': prediction['confidence']})
+                top_genus_predictions.append({'taxon': genus, 'confidence': prediction['confidence']})
             if len(top_genus_predictions) >= 10:
                 break
 
@@ -121,8 +121,18 @@ def generate_response(raw_result):
     # Calculate difference between top species and top genus
     genus_superiority = top_genus_predictions[0]['confidence'] - top_species_predictions[0]['confidence']
 
+    # Round confidence values just before returning
+    for pred in top_species_predictions:
+        pred['confidence'] = round(pred['confidence'], 3)
+    
+    for pred in top_genus_predictions:
+        pred['confidence'] = round(pred['confidence'], 3)
+    
+    genus_superiority = round(genus_superiority, 3)
+
     return {
         'best_species': top_species_predictions[0],
+        'best_genus': top_genus_predictions[0],
         'top_species': top_species_predictions,
         'top_genus': top_genus_predictions,
         'genus_superiority': genus_superiority
