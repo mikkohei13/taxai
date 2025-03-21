@@ -10,6 +10,10 @@ CORS(app)  # Enable CORS for all routes
 def serve_index():
     return render_template('index.html')
 
+@app.route('/favicon.ico')
+def serve_favicon():
+    return send_from_directory(app.static_folder, 'favicon.ico')
+
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     response = send_from_directory('static', filename)
