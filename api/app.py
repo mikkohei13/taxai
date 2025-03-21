@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 
 import predict
+import taxon
 
 app = Flask(__name__, static_folder='static')
 CORS(app)  # Enable CORS for all routes
@@ -26,6 +27,11 @@ def serve_static(filename):
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy"})
+
+@app.route('/taxon/<string:taxon_name>', methods=['GET'])
+def taxon_endpoint(taxon_name):
+    api_response = taxon.main(taxon_name)
+    return jsonify(api_response)
 
 @app.route('/predict', methods=['POST'])
 def predict_endpoint():

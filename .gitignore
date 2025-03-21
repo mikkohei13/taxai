@@ -1,6 +1,7 @@
 
 model_store/
 images*/
+token.py
 
 # Python
 __pycache__/
