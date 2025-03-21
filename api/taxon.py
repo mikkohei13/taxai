@@ -4,6 +4,29 @@ import re
 import time
 import helpers
 
+
+def get_description(taxon_data_advanced):
+    # Get descriptions if they exist
+    descriptions = taxon_data_advanced.get('descriptions', [])
+    
+    # Go through all description groups
+    for description in descriptions:
+        for group in description.get('groups', []):
+            # Look for the general description group
+            if group.get('group') == 'MX.SDVG1':
+                # Go through variables to find the description text
+                for variable in group.get('variables', []):
+                    if variable.get('variable') == 'MX.descriptionText':
+                        content = variable.get('content', {})
+                        # Handle both string and dictionary content
+                        if isinstance(content, str):
+                            return content
+                        return content.get('fi', '')
+    
+    # Return empty string if no description found
+    return ''
+
+
 def main(taxon_name_untrusted):
     start_time = time.time()
 
@@ -43,6 +66,8 @@ def main(taxon_name_untrusted):
     has_descriptions = taxon_data_advanced.get('hasDescriptions', False)
     primary_habitat = taxon_data_advanced.get('primaryHabitat', {}).get('habitat', '')
 
+    description = get_description(taxon_data_advanced)
+
     # Translations
     if rank == 'MX.species':
         rank = "laji"
@@ -66,5 +91,6 @@ def main(taxon_name_untrusted):
         "occurrence_count": occurrence_count,
         "has_descriptions": has_descriptions,
         "primary_habitat": primary_habitat,
+        "description": description,
         "response_time": response_time
     }
