@@ -11,14 +11,9 @@ RUN apt-get update && apt-get install -y \
 # installed on Dockerfile for caching
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu torch==2.5.1+cpu torchvision==0.20.1+cpu
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
-# Copy the rest of the application
 COPY . .
 
-ENV FLASK_APP=app.py
-ENV FLASK_ENV=development
-
-CMD ["flask", "run", "--host=0.0.0.0", "--reload"] 
+ENTRYPOINT gunicorn --chdir /api app:app -w 2 --threads 2 -b 0.0.0.0:5000

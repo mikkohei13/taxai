@@ -5,7 +5,7 @@ import os
 import time
 import json
 # Process specific image
-image_path = "./images/hybrid.jpg"
+image_path = "./static/test_nysius.jpg"
 
 API_HOST = "taxai-api-1"
 
@@ -18,9 +18,7 @@ with open(image_path, "rb") as img_file:
         'Accept': 'application/json'
     }
     json_request = {
-        'image': img_data,
-        'region': 'South',
-        'date': '0320'
+        'image': img_data
     }
     response = requests.post(url, json=json_request, headers=headers)
     result = response.json()

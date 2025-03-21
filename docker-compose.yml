@@ -6,14 +6,11 @@ services:
     volumes:
       - ./api:/app
     environment:
-      - FLASK_ENV=development
-
-
-  app:
-    build: ./webapp
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./webapp:/app
-    depends_on:
-      - api 
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=TRUE # Stuff printed to logs are visible immediately
+    entrypoint: >
+      gunicorn 
+      --chdir /app app:app -w 1 
+      --threads 1 -b 0.0.0.0:5000
+      --timeout 120 
+      --reload
