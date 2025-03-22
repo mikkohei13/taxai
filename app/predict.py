@@ -11,6 +11,16 @@ import io
 import base64
 import os
 
+def get_notes(genus):
+    corixidae = ['Hesperocorixia', 'Callicorixa', 'Sigara', 'Cymatia', 'Arctocorisa', 'Glaenocorisa', 'Micronecta']
+
+    if genus == 'Phytocoris':
+        return "Tämä sovellus ei tunnista luotettavasti Phytocoris-suvun lajeja. Luotettava tunnistaminen edellyttää pienten yksityiskohtien tutkimista."
+    elif genus in corixidae:
+        return "Tämä sovellus ei tunnista luotettavasti pikkumalluaisia (Corixidae). Luotettava tunnistaminen edellyttää pienten yksityiskohtien tutkimista."
+    else:
+        return ""
+
 class Predictor:
     def __init__(self, MODEL_PATH, MODEL_VERSION, SIZE_PIXELS, device=None):
         # Set device
@@ -142,12 +152,15 @@ def generate_response(raw_result):
     
     genus_superiority = round(genus_superiority, 3)
 
+    notes = get_notes(top_genus_predictions[0]['taxon'])
+
     prediction_response = {
         'best_species': top_species_predictions[0],
         'best_genus': top_genus_predictions[0],
         'top_species': top_species_predictions,
         'top_genus': top_genus_predictions,
-        'genus_superiority': genus_superiority
+        'genus_superiority': genus_superiority,
+        'notes': notes
     }
 
     return {

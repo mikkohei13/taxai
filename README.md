@@ -49,10 +49,6 @@ Issue when building this:
 - Called API from within Docker with localhost, which doesn't work. Use container name instead.
 - If Numpy version is too recent, PyTorch says Numpy is not available. Need to use version 1.26.4.
 
-Current AI model (20250319_0038_species_id_min_30_efficientnet_b5_epoch_38.pth) is not good with
-- Corixidae
-- Phytocoris
-
 Possible terms:
 
 - Almost certain / Melkein varma (0.99 - 1.0)
