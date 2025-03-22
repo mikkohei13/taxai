@@ -1,46 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="fi">
 <head>
-    <title>Heteroptera Species Predictor</title>
+    <title>Taxai - hyönteisten tunnistus</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-    <div class="container">
-        <h1>Heteroptera Species Predictor</h1>
+    <div class="grid-container">
+        <header class="header">
+            <p><a href="https://biomi.org">biomi.org</a> &raquo; Luteiden tunnistus</p>
+        </header>
         
-        <div class="upload-area" id="dropZone">
-            <div id="spinner" class="spinner" style="display: none;"></div>
-            <div class="upload-content">
-                <img src="/static/upload-icon.svg" alt="Upload" class="upload-icon">
-                <p>Drag and drop an image here or</p>
-                <label for="fileInput" class="button">Choose File</label>
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-            </div>
-            <div class="image-container">
-                <img id="uploadedImage" alt="">
+        <div class="section-1 cardwrapper">
+            <div class="upload-area" id="dropZone">
+                <div id="spinner" class="spinner" style="display: none;"></div>
+                <div class="upload-content">
+                    <p>
+                        Pudota kuva tähän tai
+                        <label for="fileInput" class="button">Valitse tiedosto</label>
+                    </p>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+                <div class="image-container">
+                    <img id="uploadedImage" alt="">
+                </div>
             </div>
         </div>
 
-        <div class="result-area" id="resultArea" style="display: none;">
-            <h2>Prediction Result</h2>
-            <div class="result-content">
-                <div class="result-item">
-                    <span class="label">Species:</span>
-                    <span id="speciesName" class="value">-</span>
-                </div>
-                <div class="result-item">
-                    <span class="label">Confidence:</span>
-                    <span id="confidence" class="value">-</span>
+        <div class="section-2 cardwrapper">
+            <div class="result-area" id="resultArea" style="display: none;">
+                <h2>Prediction Result</h2>
+                <div class="result-content">
+                    <div class="result-item">
+                        <span class="label">Species:</span>
+                        <span id="speciesName" class="value">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="label">Confidence:</span>
+                        <span id="confidence" class="value">-</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="section-3 cardwrapper">
+            <div class="info-card">
+                <p>Tämä sovellus tunnistaa luteita (Heteroptera) kuvista tekoälymallin avulla. Tekoälyn antamiin tunnistuksiin ei voi koskaan täysin luottaa, ja lajien tunnistamisessa ylipäätään on aika kyse todennäköisyyksistä.</p>
+            </div>
+        </div>
+
+        <div class="section-4 cardwrapper">
+            <div class="stats-card">
+                <h2>Species Database</h2>
+                <p>Our model is trained on thousands of images covering common Heteroptera species.</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p><a href="https://biomi.org">Mikko Heikkinen, biomi.org</a>, <a href="https://github.com/mikkohei13/taxai">Avoin lähdekoodi GitHubissa</a>,
+                ikonit <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Create Commons Attribution</a> <a href="https://www.svgrepo.com/author/Dazzle%20UI/">Dazzle UI</a></p>
+        </footer>
     </div>
 
     <script src="/static/script.js"></script>
-    <footer>
-        <p><a href="https://github.com/mikkohei13/taxai">Code on GitHub</a>,
-            icons: <a href="https://creativecommons.org/licenses/by/4.0/deed.en">Create Commons Attribution</a> <a href="https://www.svgrepo.com/author/Dazzle%20UI/">Dazzle UI</a></p>
-    </footer>
 </body>
 </html> 
 

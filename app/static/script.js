@@ -110,5 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
         speciesName.textContent = bestSpecies.taxon;
         confidence.textContent = (bestSpecies.confidence).toFixed(3);
         resultArea.style.display = 'block';
+        
+        // When on mobile, scroll to the result section
+        if (window.innerWidth <= 768) {
+            document.querySelector('.section-2').scrollIntoView({ behavior: 'smooth' });
+        }
     }
 }); 
