@@ -7,7 +7,6 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -34,7 +33,7 @@
         }
         
         .results-container {
-            max-height: 500px;
+            max-height: 700px;
             overflow-y: auto;
         }
         
@@ -44,7 +43,7 @@
         
         #video {
             width: 100%;
-            max-width: 640px;
+            max-width: 1000px;
             border-radius: 4px;
         }
         
@@ -91,19 +90,6 @@
             font-size: 14px;
         }
         
-        .api-url-container {
-            margin-bottom: 20px;
-        }
-        
-        #apiUrl {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        
         .status {
             margin-top: 15px;
             padding: 10px;
@@ -138,16 +124,8 @@
     </style>
 </head>
 <body>
-    <h1>Camera Snapshot API Integration</h1>
-    
-    <div class="api-url-container">
-        <label for="apiUrl">API Endpoint URL:</label>
-        <input type="text" id="apiUrl" placeholder="Enter API URL (e.g., https://api.example.com/analyze)" value="https://httpbin.org/post">
-    </div>
-    
     <div class="container">
         <div class="video-container">
-            <h2>Camera Feed</h2>
             <video id="video" autoplay></video>
             <canvas id="canvas" class="canvas-hidden"></canvas>
             
@@ -172,7 +150,6 @@
         </div>
         
         <div class="results-container">
-            <h2>API Results</h2>
             <div id="results"></div>
         </div>
     </div>
@@ -184,7 +161,6 @@
         const stopBtn = document.getElementById('stopBtn');
         const results = document.getElementById('results');
         const status = document.getElementById('status');
-        const apiUrlInput = document.getElementById('apiUrl');
         const intervalInput = document.getElementById('intervalSeconds');
         const showPreviewCheckbox = document.getElementById('showPreview');
         
@@ -224,13 +200,7 @@
         
         // Send snapshot to API
         async function sendToAPI(imageData) {
-            const apiUrl = apiUrlInput.value.trim();
-            
-            if (!apiUrl) {
-                showStatus('Please enter a valid API URL', 'error');
-                stopCapturing();
-                return;
-            }
+            const apiUrl = "/predict";
             
             try {
                 // Extract base64 data from imageData
@@ -278,8 +248,20 @@
             
             resultHTML += `
                 <div class="timestamp">${time}</div>
-                <pre>${JSON.stringify(apiResult, null, 2)}</pre>
             `;
+            
+            // Show only best_species confidence and taxon instead of full JSON
+            if (apiResult && apiResult.prediction && apiResult.prediction.best_species) {
+                const bestSpecies = apiResult.prediction.best_species;
+                resultHTML += `
+                    <div>
+                        <em>${bestSpecies.taxon}</em>
+                        <span>${bestSpecies.confidence}</span>
+                    </div>
+                `;
+            } else {
+                resultHTML += `<pre>${JSON.stringify(apiResult, null, 2)}</pre>`;
+            }
             
             resultItem.innerHTML = resultHTML;
             
@@ -349,14 +331,7 @@
         // Event listeners
         startBtn.addEventListener('click', startCapturing);
         stopBtn.addEventListener('click', stopCapturing);
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set default API URL
-            if (!apiUrlInput.value) {
-                apiUrlInput.value = '/predict';
-            }
-        });
+
     </script>
 </body>
 </html>
