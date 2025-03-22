@@ -28,7 +28,19 @@ h1, h2, h3, h4 {
 
 .header {
     grid-area: header;
-    text-align: center;
+    text-align: left;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#logo {
+    float: left;
+    vertical-align: middle;
+    margin-top: -1em
+}
+
+#header p {
+    vertical-align: middle;
 }
 
 .section-1 {
@@ -54,6 +66,7 @@ h1, h2, h3, h4 {
     border-top: 1px solid #e0e0e0;
     margin-top: 20px;
 }
+
 
 /* Responsive design for mobile */
 @media (max-width: 768px) {
