@@ -8,23 +8,50 @@ import helpers
 def get_description(taxon_data_advanced):
     # Get descriptions if they exist
     descriptions = taxon_data_advanced.get('descriptions', [])
+    result = {
+        "text": "",
+        "authors": ""
+    }
     
     # Go through all description groups
     for description in descriptions:
         for group in description.get('groups', []):
             # Look for the general description group
             if group.get('group') == 'MX.SDVG1':
-                # Go through variables to find the description text
+                # Go through variables to find the description text and authors
                 for variable in group.get('variables', []):
                     if variable.get('variable') == 'MX.descriptionText':
                         content = variable.get('content', {})
                         # Handle both string and dictionary content
                         if isinstance(content, str):
-                            return content
-                        return content.get('fi', '')
+                            result["text"] = content
+                        else:
+                            result["text"] = content.get('fi', '')
+                    elif variable.get('variable') == 'MX.descriptionAuthors':
+                        content = variable.get('content', {})
+                        if isinstance(content, str):
+                            result["authors"] = content
+                        else:
+                            result["authors"] = content.get('fi', '')
     
-    # Return empty string if no description found
-    return ''
+    return result
+
+def get_html_description(taxon_data_advanced):
+    html = ""
+    description = taxon_data_advanced['descriptions'][0]
+
+    for group in description['groups']:
+        for variable in group['variables']:
+            if variable['title'] == 'Ingressi':
+                pass
+            else:
+                html += f"<h4>{variable['title']}</h4>\n"
+                html += f"{variable['content']}\n"
+
+    html += f"<h4>{description['speciesCardAuthors']['title']}</h4>\n"
+    html += f"{description['speciesCardAuthors']['content']}\n"
+
+    return html
 
 
 def main(taxon_name_untrusted):
@@ -48,7 +75,7 @@ def main(taxon_name_untrusted):
     taxon_id = taxon_data[0]['id']
 
     # Get more data
-    taxon_data_advanced = helpers.fetch_finbif_api(f"https://api.laji.fi/v0/taxa/{taxon_id}?langFallback=true&maxLevel=0&includeHidden=false&includeMedia=true&includeDescriptions=true&includeRedListEvaluations=true&sortOrder=taxonomic&access_token=")
+    taxon_data_advanced = helpers.fetch_finbif_api(f"https://api.laji.fi/v0/taxa/{taxon_id}?langFallback=true&maxLevel=0&includeHidden=false&includeMedia=true&includeDescriptions=true&includeRedListEvaluations=true&sortOrder=taxonomic&lang=fi&access_token=")
 
     # Get the data we need
     fi_name = taxon_data[0].get('vernacularName', {}).get('fi', '')
@@ -66,7 +93,7 @@ def main(taxon_name_untrusted):
     has_descriptions = taxon_data_advanced.get('hasDescriptions', False)
     primary_habitat = taxon_data_advanced.get('primaryHabitat', {}).get('habitat', '')
 
-    description = get_description(taxon_data_advanced)
+    html_description = get_html_description(taxon_data_advanced)
 
     # Translations
     if rank == 'MX.species':
@@ -91,6 +118,6 @@ def main(taxon_name_untrusted):
         "occurrence_count": occurrence_count,
         "has_descriptions": has_descriptions,
         "primary_habitat": primary_habitat,
-        "description": description,
+        "description": html_description,
         "response_time": response_time
     }
