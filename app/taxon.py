@@ -93,7 +93,10 @@ def main(taxon_name_untrusted):
     has_descriptions = taxon_data_advanced.get('hasDescriptions', False)
     primary_habitat = taxon_data_advanced.get('primaryHabitat', {}).get('habitat', '')
 
-    html_description = get_html_description(taxon_data_advanced)
+    if has_descriptions:
+        html_description = get_html_description(taxon_data_advanced)
+    else:
+        html_description = ""
 
     # Translations
     if rank == 'MX.species':

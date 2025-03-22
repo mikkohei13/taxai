@@ -129,5 +129,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.innerWidth <= 768) {
             document.querySelector('.section-2').scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Make additional API call to get Finnish name if we have a valid taxon
+        if (bestSpecies.taxon && bestSpecies.taxon !== 'Unknown') {
+            fetch(`/taxon/${bestSpecies.taxon}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(taxonData => {
+                    if (taxonData) {
+                        document.getElementById('species-name-fi').textContent = taxonData.fi_name;
+                        document.getElementById('occurrence-count').textContent = taxonData.occurrence_count;
+                        if (taxonData.has_descriptions) {
+                            document.getElementById('description').innerHTML = taxonData.description;
+                        } else {
+                            document.getElementById('description').textContent = '-';
+                        }
+                    } else {
+                        document.getElementById('species-name-fi').textContent = '-';
+                        document.getElementById('occurrence-count').textContent = '-';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching Finnish name:', error);
+                    document.getElementById('species-name-fi').textContent = '-';
+                });
+        } else {
+            document.getElementById('species-name-fi').textContent = '-';
+        }
     }
 }); 

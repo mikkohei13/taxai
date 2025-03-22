@@ -31,17 +31,17 @@ def get_confidence_text(confidence):
     - Cannot identify / En osaa tunnistaa (0 - 0.5)    
     '''
     if confidence >= 0.99:
-        return "Melkein varma"
+        return "melkein varma"
     elif confidence >= 0.95:
-        return "Todennäköinen"
+        return "todennäköinen"
     elif confidence >= 0.85:
-        return "Mahdollinen"
+        return "mahdollinen"
     elif confidence >= 0.7:
-        return "Epävarma"
+        return "epävarma"
     elif confidence >= 0.5:
-        return "Pelkkä arvaus"
+        return "pelkkä arvaus"
     else:
-        return "En osaa tunnistaa"
+        return "en osaa tunnistaa"
     
 
 class Predictor:
