@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function sendToAPI(base64Image) {
-        const url = 'http://localhost:5000/predict';
+        const url = '/predict';
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'

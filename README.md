@@ -1,16 +1,16 @@
 
 # Setup
 
-    mkdir ./api/model_store
+    mkdir ./app/model_store
 
 - Put model to model_store directory. 
 - Add model name and settings to /.api/app.py
 
     docker compose up --build; docker compose down;
 
-App will be available at http://localhost:3000/
+App will be available at http://localhost:8080/
 
-API will be available at http://localhost:5000/health
+API will be available at http://localhost:8080/health
 
 When calling the API you must provide image. Region and date are optional.
 
@@ -19,6 +19,11 @@ When calling the API you must provide image. Region and date are optional.
         'region': 'South',
         'date': '0320'
     }
+
+gcloud run deploy taxai --project=havistin --image=gcr.io/havistin/taxai --max-instances=1 --concurrency=5 --memory=2048Mi --timeout=40
+
+gcloud run services update taxai --min-instances=1
+
 
 # Notes
 
@@ -41,4 +46,10 @@ Possible terms:
 - Uncertain / Epävarma (0.7 - 0.85)
 - Just a guess / Pelkkä arvaus (0.5 - 0.7)
 - Cannot identify / En osaa tunnistaa (0 - 0.5)
+
+# Cleanup
+
+.dockerignore
+model
+.env
 

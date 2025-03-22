@@ -14,6 +14,13 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
-COPY . .
+COPY ./app .
 
-ENTRYPOINT gunicorn --chdir /api app:app -w 2 --threads 2 -b 0.0.0.0:5000
+# Old:
+#ENTRYPOINT gunicorn --chdir /app app:app -w 2 --threads 2 -b 0.0.0.0:8080
+
+# With logs
+#ENTRYPOINT ["gunicorn", "--chdir", "/app", "app:app", "-w", "2", "--threads", "2", "-b", "0.0.0.0:8080", "--log-level=debug"]
+
+# Without logs
+ENTRYPOINT ["gunicorn", "--chdir", "/app", "app:app", "-w", "2", "--threads", "2", "-b", "0.0.0.0:8080"]
