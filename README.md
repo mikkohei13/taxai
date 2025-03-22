@@ -25,7 +25,11 @@ API health check endpoint will be available at http://localhost:8080/health
 
 # Deploy to Google Cloud Run
 
-App needs >1GB memory if the model is large. Having less memorey might result in random startup errors.
+Build new version:
+
+    gcloud builds submit --tag gcr.io/havistin/taxai .
+
+Deploy new version. Note that the app needs >1GB memory if the model is large. Having less memory might result in random startup errors.
 
     gcloud run deploy taxai --project=havistin --image=gcr.io/havistin/taxai --max-instances=1 --concurrency=5 --memory=2048Mi --timeout=40
 

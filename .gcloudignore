@@ -4,6 +4,11 @@ export/
 import/
 single_test.py*
 
+# Git files 
+.git/
+.git/**
+.gitignore
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
