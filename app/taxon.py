@@ -5,37 +5,6 @@ import time
 import helpers
 
 
-def get_description(taxon_data_advanced):
-    # Get descriptions if they exist
-    descriptions = taxon_data_advanced.get('descriptions', [])
-    result = {
-        "text": "",
-        "authors": ""
-    }
-    
-    # Go through all description groups
-    for description in descriptions:
-        for group in description.get('groups', []):
-            # Look for the general description group
-            if group.get('group') == 'MX.SDVG1':
-                # Go through variables to find the description text and authors
-                for variable in group.get('variables', []):
-                    if variable.get('variable') == 'MX.descriptionText':
-                        content = variable.get('content', {})
-                        # Handle both string and dictionary content
-                        if isinstance(content, str):
-                            result["text"] = content
-                        else:
-                            result["text"] = content.get('fi', '')
-                    elif variable.get('variable') == 'MX.descriptionAuthors':
-                        content = variable.get('content', {})
-                        if isinstance(content, str):
-                            result["authors"] = content
-                        else:
-                            result["authors"] = content.get('fi', '')
-    
-    return result
-
 def get_html_description(taxon_data_advanced):
     html = ""
     description = taxon_data_advanced['descriptions'][0]
@@ -48,8 +17,9 @@ def get_html_description(taxon_data_advanced):
                 html += f"<h4>{variable['title']}</h4>\n"
                 html += f"{variable['content']}\n"
 
-    html += f"<h4>{description['speciesCardAuthors']['title']}</h4>\n"
-    html += f"{description['speciesCardAuthors']['content']}\n"
+    if 'speciesCardAuthors' in description:
+        html += f"<h4>{description['speciesCardAuthors']['title']}</h4>\n"
+        html += f"{description['speciesCardAuthors']['content']}\n"
 
     return html
 
