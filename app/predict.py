@@ -12,7 +12,7 @@ import base64
 import os
 
 def get_notes(genus):
-    corixidae = ['Hesperocorixia', 'Callicorixa', 'Sigara', 'Cymatia', 'Arctocorisa', 'Glaenocorisa', 'Micronecta']
+    corixidae = ['Hesperocorixa', 'Callicorixa', 'Sigara', 'Cymatia', 'Arctocorisa', 'Glaenocorisa', 'Micronecta']
 
     if genus == 'Phytocoris':
         return "Tämä sovellus ei tunnista luotettavasti Phytocoris-suvun lajeja. Luotettava tunnistaminen edellyttää pienten yksityiskohtien tutkimista."

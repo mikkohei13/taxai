@@ -49,7 +49,31 @@ document.addEventListener('DOMContentLoaded', () => {
         handleFiles(files);
     }
 
+    function clearPreviousImageData() {
+        // Clear image
+        const uploadedImage = document.getElementById('uploadedImage');
+        uploadedImage.src = '';
+        
+        // Clear result area and hide it
+        resultArea.style.display = 'none';
+        
+        // Clear all text content fields
+        document.getElementById('species-name').textContent = '';
+        document.getElementById('species-confidence').textContent = '';
+        document.getElementById('species-confidence-text').textContent = '';
+        document.getElementById('genus-name').textContent = '';
+        document.getElementById('genus-confidence').textContent = '';
+        document.getElementById('genus-confidence-text').textContent = '';
+        document.getElementById('notes').textContent = '';
+        document.getElementById('species-name-fi').textContent = '';
+        document.getElementById('occurrence-count').textContent = '';
+        document.getElementById('description').textContent = '';
+    }
+
     function handleFiles(files) {
+        // Clear previous image data before processing new image
+        clearPreviousImageData();
+        
         if (files.length > 0) {
             const file = files[0];
             if (file.type.startsWith('image/')) {
