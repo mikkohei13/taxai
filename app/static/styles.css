@@ -6,6 +6,10 @@ body {
     color: #333;
 }
 
+h1, h2, h3, h4 {
+    margin: 0;
+}
+
 /* Grid Layout */
 .grid-container {
     display: grid;
@@ -124,7 +128,6 @@ body {
     min-width: 456px;
     min-height: 456px;
     border-radius: 0.5em;
-    border: none;
 }
 
 .image-container {

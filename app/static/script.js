@@ -2,8 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const resultArea = document.getElementById('resultArea');
-    const speciesName = document.getElementById('speciesName');
-    const confidence = document.getElementById('confidence');
     const spinner = document.getElementById('spinner');
 
     // Prevent default drag behaviors
@@ -106,9 +104,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayResult(data) {
-        const bestSpecies = data.prediction.best_species;
-        speciesName.textContent = bestSpecies.taxon;
-        confidence.textContent = (bestSpecies.confidence).toFixed(3);
+        if (!data || !data.prediction) {
+            alert('Invalid response from the server');
+            return;
+        }
+        
+        const bestSpecies = data.prediction.best_species || { taxon: 'Unknown', confidence: 0 };
+        const bestGenus = data.prediction.best_genus || { taxon: 'Unknown', confidence: 0 };
+        const notes = data.prediction.notes || '';
+        
+        document.getElementById('species-name').textContent = bestSpecies.taxon;
+        document.getElementById('species-confidence').textContent = bestSpecies.confidence.toFixed(3);
+        
+        document.getElementById('genus-name').textContent = bestGenus.taxon;
+        document.getElementById('genus-confidence').textContent = bestGenus.confidence.toFixed(3);
+        
+        document.getElementById('notes').textContent = notes;
+        
         resultArea.style.display = 'block';
         
         // When on mobile, scroll to the result section
