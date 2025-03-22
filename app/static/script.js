@@ -115,9 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('species-name').textContent = bestSpecies.taxon;
         document.getElementById('species-confidence').textContent = bestSpecies.confidence.toFixed(3);
+        document.getElementById('species-confidence-text').textContent = bestSpecies.confidence_text;
         
         document.getElementById('genus-name').textContent = bestGenus.taxon;
         document.getElementById('genus-confidence').textContent = bestGenus.confidence.toFixed(3);
+        document.getElementById('genus-confidence-text').textContent = bestGenus.confidence_text;
         
         document.getElementById('notes').textContent = notes;
         

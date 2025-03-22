@@ -21,6 +21,29 @@ def get_notes(genus):
     else:
         return ""
 
+def get_confidence_text(confidence):
+    '''
+    - Almost certain / Melkein varma (0.99 - 1.0)
+    - Likely / Todennäköinen (0.95 - 0.99)
+    - Possible / Mahdollinen (0.85 - 0.95)
+    - Uncertain / Epävarma (0.7 - 0.85)
+    - Just a guess / Pelkkä arvaus (0.5 - 0.7)
+    - Cannot identify / En osaa tunnistaa (0 - 0.5)    
+    '''
+    if confidence >= 0.99:
+        return "Melkein varma"
+    elif confidence >= 0.95:
+        return "Todennäköinen"
+    elif confidence >= 0.85:
+        return "Mahdollinen"
+    elif confidence >= 0.7:
+        return "Epävarma"
+    elif confidence >= 0.5:
+        return "Pelkkä arvaus"
+    else:
+        return "En osaa tunnistaa"
+    
+
 class Predictor:
     def __init__(self, MODEL_PATH, MODEL_VERSION, SIZE_PIXELS, device=None):
         # Set device
@@ -154,9 +177,21 @@ def generate_response(raw_result):
 
     notes = get_notes(top_genus_predictions[0]['taxon'])
 
+    best_species = {
+        'taxon': top_species_predictions[0]['taxon'],
+        'confidence': top_species_predictions[0]['confidence'],
+        'confidence_text': get_confidence_text(top_species_predictions[0]['confidence'])
+    }
+
+    best_genus = {
+        'taxon': top_genus_predictions[0]['taxon'],
+        'confidence': top_genus_predictions[0]['confidence'],
+        'confidence_text': get_confidence_text(top_genus_predictions[0]['confidence'])
+    }
+
     prediction_response = {
-        'best_species': top_species_predictions[0],
-        'best_genus': top_genus_predictions[0],
+        'best_species': best_species,
+        'best_genus': best_genus,
         'top_species': top_species_predictions,
         'top_genus': top_genus_predictions,
         'genus_superiority': genus_superiority,
