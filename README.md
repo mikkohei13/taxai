@@ -23,15 +23,22 @@ App will be available at http://localhost:8080/
 
 API health check endpoint will be available at http://localhost:8080/health
 
-# Deploy to Google Cloud Run
+# Deploy to Google Cloud Run using Artifact Repository
 
 Build new version:
 
-    gcloud builds submit --tag gcr.io/havistin/taxai .
+    gcloud builds submit --tag europe-north1-docker.pkg.dev/havistin/taxai-repo-north/taxai .
 
 Deploy new version. Note that the app needs >1GB memory if the model is large. Having less memory might result in random startup errors.
 
-    gcloud run deploy taxai --project=havistin --image=gcr.io/havistin/taxai --max-instances=1 --concurrency=5 --memory=2048Mi --timeout=40
+    gcloud run deploy taxai \
+    --project=havistin \
+    --image=europe-north1-docker.pkg.dev/havistin/taxai-repo-north/taxai \
+    --max-instances=1 \
+    --concurrency=5 \
+    --memory=2048Mi \
+    --timeout=40 \
+    --region=europe-north1
 
 Adjust options if needed:
 
