@@ -2,6 +2,7 @@
 model_store/
 images*/
 my_token.py
+app/static/fonts/*
 
 # Python
 __pycache__/

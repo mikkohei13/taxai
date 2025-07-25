@@ -20,7 +20,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
-            margin-top: 20px;
         }
         
         .video-container, .results-container {
@@ -171,7 +170,7 @@
         async function setupCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'user' },
+                    video: { facingMode: 'environment' },
                     audio: false 
                 });
                 video.srcObject = stream;
