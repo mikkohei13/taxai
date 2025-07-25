@@ -5,7 +5,7 @@ import time
 import helpers
 
 
-def get_html_description(taxon_data_advanced):
+def get_html_description(taxon_data_advanced, taxon_id):
     html = ""
     description = taxon_data_advanced['descriptions'][0]
 
@@ -18,8 +18,13 @@ def get_html_description(taxon_data_advanced):
                 html += f"{variable['content']}\n"
 
     if 'speciesCardAuthors' in description:
-        html += f"<h4>{description['speciesCardAuthors']['title']}</h4>\n"
+        html += f"<h4>Lähde</h4>\n"
         html += f"{description['speciesCardAuthors']['content']}\n"
+    else:
+        html += f"<h4>Lähde</h4>\n"
+
+
+    html += f"<p><a href='https://laji.fi/taxon/{taxon_id}'>Lajikuvaus Laji.fi:ssa</a>, <a href='https://creativecommons.org/licenses/by/4.0/'>Creative Commons Nimeä 4.0</a></p>\n"
 
     return html
 
@@ -64,7 +69,7 @@ def main(taxon_name_untrusted):
     primary_habitat = taxon_data_advanced.get('primaryHabitat', {}).get('habitat', '')
 
     if has_descriptions:
-        html_description = get_html_description(taxon_data_advanced)
+        html_description = get_html_description(taxon_data_advanced, taxon_id)
     else:
         html_description = ""
 
