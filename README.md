@@ -1,9 +1,9 @@
 
 <img align="right" src="./app/static/logo_medium.png" alt="alt text" style="margin-left: 1em; margin-top: -2em;"/>
 
-Taxai is a web app that helps to identify insect species from images using machine learning. Built with Python and PyTorch, it runs well on CPU and can be deployed either locally with Docker Compose or on Google Cloud Run.
+Taxai is a web app that helps to identify insect species from images using machine learning. Built with Python and PyTorch, it runs well on CPU and can be deployed either locally with Docker Compose or on Google Cloud Run. See background information about making the app and its underlying model: https://www.biomi.org/2025/03/25/insect-identification-with-machine-learning/
 
-First public version released 2025-03-22 - still improving but already functional.
+First public version released 2025-03-22.
 
 
 # Setup (untested)
