@@ -6,7 +6,7 @@ Taxai is a web app that helps to identify insect species from images using machi
 First public version released 2025-03-22.
 
 
-# Setup (untested)
+## Setup (untested)
 
 - Clone this repository.
 - Create a directory for the model:
@@ -23,7 +23,7 @@ App will be available at http://localhost:8080/
 
 API health check endpoint will be available at http://localhost:8080/health
 
-# Deploy to Google Cloud Run using Artifact Repository
+## Deploy to Google Cloud Run Using Artifact Repository
 
 Build new version:
 
@@ -44,7 +44,7 @@ Adjust options if needed:
 
     gcloud run services update taxai --min-instances=1
 
-# Usage
+## Usage
 
 When calling the API you must provide an image.
 
@@ -52,15 +52,16 @@ When calling the API you must provide an image.
         'image': img_data,
     }
 
-# Notes
+## Notes
 
 Issue when building this:
+
 - Tried to install full pytorch with GPU, which was very slow. Use CPU version instead.
 -  Compatibility issues with CPU library versions.
 - Called API from within Docker with localhost, which doesn't work. Use container name instead.
 - If Numpy version is too recent, PyTorch says Numpy is not available. Need to use version 1.26.4.
 
-Possible terms:
+Terms:
 
 - Almost certain / Melkein varma (0.99 - 1.0)
 - Likely / Todennäköinen (0.95 - 0.99)
@@ -69,9 +70,11 @@ Possible terms:
 - Just a guess / Pelkkä arvaus (0.5 - 0.7)
 - Cannot identify / En osaa tunnistaa (0 - 0.5)
 
-# Todo: Cleanup
+## Todo: Cleanup
 
-.dockerignore
-model
-.env
+- .dockerignore
+- model
+- .env
+
+![Taxai Screenshot](./app/static/screenshot.png)
 
